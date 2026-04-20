@@ -51,6 +51,7 @@ async function importData() {
 	
 	//Tables
 	const propertyRows = [];
+	const tonifiesRows = [];
 	const channelRows = [];
 	
 	
@@ -61,6 +62,12 @@ async function importData() {
         });
     }
 	
+	if (row[5] && row[5].trim()) {
+		row[5].split(',').forEach(prop => {
+			tonifiesRows.push([row[0], prop.trim()]);
+		});
+	}
+	
 	if (row[4] && row[4].trim()) {
 		row[4].split(',').forEach(prop => {
 			channelRows.push([row[0], prop.trim()]);
@@ -70,6 +77,7 @@ async function importData() {
 	});
 	
 	await createPropertiesTable(conn, propertyRows);
+	await createTonifiesTable(conn, tonifiesRows);
 	await createChannelsTable(conn, channelRows);
 
 
@@ -78,9 +86,9 @@ async function importData() {
 	
     await conn.end();
 }
-
+//Property table creation and insertion
 async function createPropertiesTable(conn, propertyRows) {
-	//Property table creation and insertion
+	
 	await conn.execute('CREATE TABLE properties (' +
 		'ind INT AUTO_INCREMENT,' +
 		'id INT,' +
@@ -98,14 +106,35 @@ async function createPropertiesTable(conn, propertyRows) {
 		[propertyRows]
 	);
 	
-	console.log(`Inserted ${propertyRows.length} rows`);
-
-	
-		
+	console.log(`Inserted ${propertyRows.length} rows`);		
 }
 
+//Tonifies table creation and insertion
+async function createTonifiesTable(conn, tonifiesRows) {
+	
+	await conn.execute('CREATE TABLE tonifies (' +
+		'ind INT AUTO_INCREMENT,' +
+		'id INT,' +
+		'tonifies VARCHAR(10),' +
+		'CONSTRAINT pk_tonifies_ind PRIMARY KEY (ind),' +
+		'CONSTRAINT fk_tonifies_id FOREIGN KEY (id)' +
+		'REFERENCES nutrition (id)' +
+		')'
+	);
+	
+	await conn.query(
+		'INSERT INTO tonifies' +
+		'(id, tonifies)' +
+		'VALUES ?',
+		[tonifiesRows]
+	);
+	
+	console.log(`Inserted ${tonifiesRows.length} rows`);	
+}
+
+//Channel table creation and insertion
 async function createChannelsTable(conn, channelRows) {
-	//Channel table creation and insertion
+	
 	await conn.execute('CREATE TABLE channels (' +
 		'ind INT AUTO_INCREMENT,' +
 		'id INT,' +
