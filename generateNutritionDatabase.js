@@ -21,31 +21,31 @@ async function importData() {
 	);
 
     await conn.execute('CREATE TABLE IF NOT EXISTS nutrition (' +
-        'id INT PRIMARY KEY,' +
+        'id INT AUTO_INCREMENT PRIMARY KEY,' +
         'name VARCHAR(500),' +
         'temp VARCHAR(100),' +
-        'type VARCHAR(100),' +
-        'channels VARCHAR(200),' +
-        'tonifies VARCHAR(200),' +
-        'properties VARCHAR(200),' +
-        'pacifies VARCHAR(200),' +
-        'aggravates VARCHAR(200),' +
-        'chakra VARCHAR(200),' +
-        'notes TEXT' +
-        ')  ');
+        'type VARCHAR(100)' +
+		')  ');
+        //'channels VARCHAR(200),' +
+        //'tonifies VARCHAR(200),' +
+        //'properties VARCHAR(200),' +
+        //'pacifies VARCHAR(200),' +
+        //'aggravates VARCHAR(200),' +
+        //'chakra VARCHAR(200),' +
+        //'notes TEXT' +
+        
 		
 	let index = 0;
 	
     const nutritionRows = data.map(item => [
-        index++, item.Name, item.Temp, item.Type, item.Channels, item.Tonifies,
-        item.Properties, item.Pacifies, item.Aggravates, item.Chakra, item.Notes
+        item.Name, item.Temp, item.Type, 
+		//item.Channels, item.Tonifies,item.Properties, item.Pacifies, item.Aggravates, item.Chakra, item.Notes
     ]);
 
-    await conn.query(
-        'INSERT INTO nutrition (id, name, temp, type, channels, tonifies, properties, pacifies,'+
-        'aggravates, chakra, notes) VALUES ?',
-        [nutritionRows]
-    );
+	const fullRows = data.map((item,i) => [
+		i+1, item.Channels, item.Tonifies, item.Properties
+	]);
+   
 
     console.log(`Inserted ${nutritionRows.length} rows.`);
 	
@@ -55,26 +55,34 @@ async function importData() {
 	const channelRows = [];
 	
 	
-	nutritionRows.forEach(row =>{ 
-    if (row[6] && row[6].trim()) {
-        row[6].split(',').forEach(prop => {
+	fullRows.forEach(row =>{ 
+    if (row[3] && row[3].trim()) {
+        row[3].split(',').forEach(prop => {
             propertyRows.push([row[0], prop.trim()]);
         });
     }
 	
-	if (row[5] && row[5].trim()) {
-		row[5].split(',').forEach(prop => {
+	if (row[2] && row[2].trim()) {
+		row[2].split(',').forEach(prop => {
 			tonifiesRows.push([row[0], prop.trim()]);
 		});
 	}
 	
-	if (row[4] && row[4].trim()) {
-		row[4].split(',').forEach(prop => {
+	if (row[1] && row[1].trim()) {
+		row[1].split(',').forEach(prop => {
 			channelRows.push([row[0], prop.trim()]);
 		});
 	}
 	
 	});
+	
+	
+	 await conn.query(
+        'INSERT INTO nutrition (name, temp, type ) VALUES ?',
+        [nutritionRows]
+    );
+		//channels, tonifies, properties, pacifies,aggravates, chakra, notes
+		
 	
 	await createPropertiesTable(conn, propertyRows);
 	await createTonifiesTable(conn, tonifiesRows);
